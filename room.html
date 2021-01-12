@@ -1,0 +1,15 @@
+<h1>henlo</h1>
+<script>
+  const socket = new WebSocket(
+    `ws://localhost:3000${window.location.pathname}`
+  ); //new WebSocket(window.location.protocol === "https:" ? "wss:" : "ws:" + "//" + window.location.hostname + "");
+
+  socket.onopen = () => {
+    let message = { type: "connection", message: "entered_room" };
+    socket.send(JSON.stringify(message));
+  };
+
+  socket.onmessage = (e) => {
+    console.log("Message from server:", event.data);
+  };
+</script>

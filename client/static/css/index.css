@@ -1,0 +1,26 @@
+html {
+  box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  display: flex;
+}
+
+#main-page-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

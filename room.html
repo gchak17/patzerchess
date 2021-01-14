@@ -1,15 +1,102 @@
-<h1>henlo</h1>
-<script>
-  const socket = new WebSocket(
-    `ws://localhost:3000${window.location.pathname}`
-  ); //new WebSocket(window.location.protocol === "https:" ? "wss:" : "ws:" + "//" + window.location.hostname + "");
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      html {
+        box-sizing: border-box;
+      }
 
-  socket.onopen = () => {
-    let message = { type: "connection", message: "entered_room" };
-    socket.send(JSON.stringify(message));
-  };
+      *,
+      *:before,
+      *:after {
+        box-sizing: inherit;
+      }
 
-  socket.onmessage = (e) => {
-    console.log("Message from server:", event.data);
-  };
-</script>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+
+      body {
+        display: flex;
+      }
+
+      #room-container {
+        display: flex;
+        flex: 1;
+        padding: 2%;
+        background-color: bisque;
+        outline: 1px solid black;
+      }
+
+      #game-container {
+        outline: 1px solid red;
+        flex: 7;
+      }
+
+      #chat-container {
+        outline: 1px solid green;
+        flex: 3;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #messages-container {
+        flex: 8;
+        outline: 1px solid blue;
+        overflow-y: scroll;
+      }
+
+      #send-container {
+        flex: 2;
+        outline: 1px solid pink;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="room-container">
+      <div id="game-container"></div>
+      <div id="chat-container">
+        <div id="messages-container"></div>
+        <form id="send-container">
+          <input type="text" id="message-input" />
+          <button type="submit" id="send-button">Send</button>
+        </form>
+      </div>
+    </div>
+  </body>
+  <script>
+    const messageForm = document.getElementById("send-container");
+    const messageInput = document.getElementById("message-input");
+    const messageContainer = document.getElementById("messages-container");
+
+    function appendMessage(message) {
+      const messageElement = document.createElement("div");
+      messageElement.innerText = message;
+      messageContainer.append(messageElement);
+    }
+
+    const socket = new WebSocket(
+      `ws://localhost:3000${window.location.pathname}`
+    ); //new WebSocket(window.location.protocol === "https:" ? "wss:" : "ws:" + "//" + window.location.hostname + "");
+
+    socket.onopen = () => {
+      let message = { type: "connection", message: "entered_room" };
+      socket.send(JSON.stringify(message));
+    };
+
+    socket.onmessage = (e) => {
+      if (!e.data) return;
+      let message = JSON.parse(e.data);
+      appendMessage(message.message);
+    };
+
+    messageForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      let message = { type: "message", message: messageInput.value };
+      socket.send(JSON.stringify(message));
+      messageInput.value = "";
+    });
+  </script>
+</html>

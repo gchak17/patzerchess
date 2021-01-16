@@ -14,13 +14,18 @@ body {
   height: 100%;
 }
 
-body {
+#login-register-page {
+  width: 100%;
+  height: 100%;
   display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 
-#main-page-container {
-  flex: 1;
+#login,
+#register {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }

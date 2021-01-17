@@ -23,6 +23,8 @@ const registerUser = async (event) => {
     const { message } = await response.json();
     console.log(`Token: ${message}`);
     //TODO: show relevant message as popup, set token and navigate to another page
+    localStorage.setItem("token", message);
+    location.href = "/dashboard.html";
   }
 };
 

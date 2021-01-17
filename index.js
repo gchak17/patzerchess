@@ -1,49 +1,18 @@
 const express = require("express");
 const app = express();
 const path = require("path");
-const { v4: uuidv4 } = require("uuid");
-const ws = require("express-ws")(app);
+// const { v4: uuidv4 } = require("uuid");
+// const ws = require("express-ws")(app);
 const bodyParser = require("body-parser");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("./db");
+const router = require("./routes");
 require("dotenv").config();
 
 let rooms = {};
-
-const secretKey = process.env.JWT_SECRET;
 const port = process.env.PORT;
 
 app.use("/", express.static(path.join(__dirname, "static")));
 app.use(bodyParser.json());
-
-app.post("/api/register", async (req, res) => {
-  let { username, password } = req.body;
-  password = await bcrypt.hash(password, 10);
-
-  try {
-    const user = await User.create({
-      username,
-      password,
-    });
-
-    const token = jwt.sign(
-      {
-        id: user._id,
-        username: user.username,
-      },
-      secretKey
-    );
-
-    res.status(200).json({ message: token });
-  } catch (err) {
-    if (err.code === 11000) {
-      return res.status(409).json({ message: "Username already in use" });
-    } else {
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  }
-});
+app.use(router);
 
 // app.get("/*", (req, res) => {
 //   res.sendFile(path.resolve(__dirname, "client", "index.html"));

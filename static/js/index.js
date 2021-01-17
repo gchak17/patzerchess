@@ -1,8 +1,6 @@
-window.addEventListener("DOMContentLoaded", async (e) => {
-  if (localStorage.getItem("token")) {
-    location.href = "/dashboard.html";
-  }
-});
+if (localStorage.getItem("token")) {
+  location.href = "/dashboard";
+}
 
 const registerForm = document.getElementById("register");
 const loginForm = document.getElementById("login");
@@ -31,7 +29,7 @@ const registerUser = async (event) => {
     console.log(`Token: ${message}`);
     //TODO: show relevant message as popup, set token and navigate to another page
     localStorage.setItem("token", message);
-    location.href = "/dashboard.html";
+    location.href = "/dashboard";
   }
 };
 
@@ -59,7 +57,7 @@ const loginUser = async (event) => {
     console.log(`Token: ${message}`);
     //TODO: show relevant message as popup, set token and navigate to another page
     localStorage.setItem("token", message);
-    location.href = "/dashboard.html";
+    location.href = "/dashboard";
   }
 };
 

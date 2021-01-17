@@ -1,6 +1,5 @@
 const express = require("express");
 const app = express();
-const path = require("path");
 // const { v4: uuidv4 } = require("uuid");
 // const ws = require("express-ws")(app);
 const bodyParser = require("body-parser");
@@ -10,7 +9,7 @@ require("dotenv").config();
 let rooms = {};
 const port = process.env.PORT;
 
-app.use("/", express.static(path.join(__dirname, "static")));
+app.use(express.static(__dirname + "/static"));
 app.use(bodyParser.json());
 app.use(router);
 

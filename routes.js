@@ -6,12 +6,22 @@ require("dotenv").config();
 
 const secretKey = process.env.JWT_SECRET;
 
+router.get("/", (req, res) => {
+  res.sendFile("/static/index.html", { root: __dirname });
+});
+
+router.get("/dashboard", (req, res) => {
+  res.sendFile("/static/dashboard.html", { root: __dirname });
+});
+
 router.get("/api/dashboard", async (req, res) => {
   const token = req.get("token");
 
   try {
-    const user = jwt.verify(token, secretKey);
-    res.status(200).json({ username: user.username });
+    const username = jwt.verify(token, secretKey).username;
+    const user = await User.findOne({ username }).lean();
+
+    res.status(200).json({ username: user.username, rating: user.rating });
   } catch (err) {
     res.status(500).send();
   }
@@ -45,6 +55,7 @@ router.post("/api/register", async (req, res) => {
     const user = await User.create({
       username,
       password,
+      rating: 1000,
     });
 
     const token = jwt.sign(

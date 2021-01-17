@@ -17,6 +17,26 @@ router.get("/api/dashboard", async (req, res) => {
   }
 });
 
+router.post("/api/login", async (req, res) => {
+  const { username, password } = req.body;
+  const user = await User.findOne({ username }).lean();
+
+  if (!user) {
+    return res.status(403).json({ message: "Invalid username" });
+  }
+
+  if (await bcrypt.compare(password, user.password)) {
+    const token = jwt.sign(
+      { id: user._id, username: user.username },
+      secretKey
+    );
+
+    return res.status(200).json({ message: token });
+  } else {
+    res.status(403).json({ message: "Invalid password" });
+  }
+});
+
 router.post("/api/register", async (req, res) => {
   let { username, password } = req.body;
   password = await bcrypt.hash(password, 10);
@@ -28,10 +48,7 @@ router.post("/api/register", async (req, res) => {
     });
 
     const token = jwt.sign(
-      {
-        id: user._id,
-        username: user.username,
-      },
+      { id: user._id, username: user.username },
       secretKey
     );
 

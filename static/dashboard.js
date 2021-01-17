@@ -14,4 +14,10 @@ window.addEventListener("DOMContentLoaded", async (e) => {
     const usernameTitle = document.getElementById("username-title");
     usernameTitle.innerHTML = username;
   }
+
+  const logoutButton = document.getElementById("logout");
+  logoutButton.addEventListener("click", (e) => {
+    localStorage.removeItem("token");
+    location.href = "index.html";
+  });
 });

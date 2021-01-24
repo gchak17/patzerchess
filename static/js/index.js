@@ -5,12 +5,12 @@ if (localStorage.getItem("token")) {
 const registerForm = document.getElementById("register");
 const loginForm = document.getElementById("login");
 
-const registerUser = async (event) => {
+const authenticateUser = async (event, type) => {
   event.preventDefault();
-  const username = document.getElementById("register-username").value;
-  const password = document.getElementById("register-password").value;
+  const username = document.getElementById(`${type}-username`).value;
+  const password = document.getElementById(`${type}-password`).value;
 
-  const response = await fetch("/api/register", {
+  const response = await fetch(`/api/${type}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -23,43 +23,17 @@ const registerUser = async (event) => {
 
   if (!response.ok) {
     console.log("Bad response");
-    //TODO: show relevant message as popup
   } else {
     const { message } = await response.json();
-    console.log(`Token: ${message}`);
-    //TODO: show relevant message as popup, set token and navigate to another page
     localStorage.setItem("token", message);
     location.href = "/dashboard";
   }
 };
 
-const loginUser = async (event) => {
-  event.preventDefault();
-  const username = document.getElementById("login-username").value;
-  const password = document.getElementById("login-password").value;
-  console.log("YUP");
-  const response = await fetch("/api/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      username,
-      password,
-    }),
-  });
+registerForm.addEventListener("submit", (event) =>
+  authenticateUser(event, "register")
+);
 
-  if (!response.ok) {
-    console.log("Bad response");
-    //TODO: show relevant message as popup
-  } else {
-    const { message } = await response.json();
-    console.log(`Token: ${message}`);
-    //TODO: show relevant message as popup, set token and navigate to another page
-    localStorage.setItem("token", message);
-    location.href = "/dashboard";
-  }
-};
-
-registerForm.addEventListener("submit", registerUser);
-loginForm.addEventListener("submit", loginUser);
+loginForm.addEventListener("submit", (event) =>
+  authenticateUser(event, "login")
+);

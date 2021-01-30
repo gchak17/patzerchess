@@ -5,7 +5,6 @@ const router = require("./routes");
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
 const jwt = require("jsonwebtoken");
-const { use } = require("./routes");
 require("dotenv").config();
 const users = [];
 const secretKey = process.env.JWT_SECRET;
@@ -31,6 +30,14 @@ const userJoin = (id, username, room) => {
 
 const getCurrentUser = (id) => {
   return users.find((user) => user.id === id);
+};
+
+const userLeave = (id) => {
+  const index = users.findIndex((user) => user.id === id);
+
+  if (index !== -1) {
+    return users.splice(index, 1)[0];
+  }
 };
 
 io.on("connection", (socket) => {
@@ -66,5 +73,17 @@ io.on("connection", (socket) => {
   socket.on("chatMessage", (data) => {
     const user = getCurrentUser(socket.id);
     io.to(user.room).emit("chatMessage", `${user.username}: ${data}`);
+  });
+
+  socket.on("disconnect", () => {
+    const user = userLeave(socket.id);
+
+    if (user) {
+      io.to(user.room).emit(
+        "disconnectionMessage",
+        `${user.username} has left the game, you won!`
+      );
+      console.log(`${user.username} has left the game`);
+    }
   });
 });

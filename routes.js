@@ -1,33 +1,33 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
 const User = require("./db");
 const router = require("express").Router();
 require("dotenv").config();
-
 const secretKey = process.env.JWT_SECRET;
 
 router.get("/", (req, res) => {
   res.sendFile("/static/index.html", { root: __dirname });
 });
 
-router.get("/dashboard", (req, res) => {
-  res.sendFile("/static/dashboard.html", { root: __dirname });
-});
-
-router.get("/api/dashboard", async (req, res) => {
+router.get("/dashboard", async (req, res) => {
   const token = req.get("token");
 
-  try {
-    const username = jwt.verify(token, secretKey).username;
-    const user = await User.findOne({ username }).lean();
+  if (!token) {
+    res.sendFile("/static/dashboard.html", { root: __dirname });
+  } else {
+    try {
+      const username = jwt.verify(token, secretKey).username;
+      const user = await User.findOne({ username }).lean();
 
-    res.status(200).json({ username: user.username, rating: user.rating });
-  } catch (err) {
-    res.status(500).send();
+      res.status(200).json({ username: user.username, rating: user.rating });
+    } catch (err) {
+      res.status(500).send();
+    }
   }
 });
 
-router.post("/api/login", async (req, res) => {
+router.post("/login", async (req, res) => {
   const { username, password } = req.body;
   const user = await User.findOne({ username }).lean();
 
@@ -47,7 +47,7 @@ router.post("/api/login", async (req, res) => {
   }
 });
 
-router.post("/api/register", async (req, res) => {
+router.post("/register", async (req, res) => {
   let { username, password } = req.body;
   password = await bcrypt.hash(password, 10);
 
@@ -71,6 +71,15 @@ router.post("/api/register", async (req, res) => {
       return res.status(500).json({ message: "Internal server error" });
     }
   }
+});
+
+router.post("/game", (req, res) => {
+  const roomId = uuidv4();
+  res.status(200).json({ message: roomId });
+});
+
+router.get("/game/:id", (req, res) => {
+  res.sendFile("/static/game.html", { root: __dirname });
 });
 
 module.exports = router;

@@ -10,7 +10,7 @@ const authenticateUser = async (event, type) => {
   const username = document.getElementById(`${type}-username`).value;
   const password = document.getElementById(`${type}-password`).value;
 
-  const response = await fetch(`/api/${type}`, {
+  const response = await fetch(`/${type}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

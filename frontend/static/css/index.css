@@ -1,3 +1,6 @@
+@import "game.css";
+@import "dashboard.css";
+
 html {
   box-sizing: border-box;
 }
@@ -9,7 +12,8 @@ html {
 }
 
 html,
-body {
+body,
+#app {
   margin: 0;
   height: 100%;
 }

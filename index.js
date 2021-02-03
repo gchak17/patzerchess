@@ -5,12 +5,16 @@ const router = require("./routes");
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
 const jwt = require("jsonwebtoken");
+const path = require("path");
 require("dotenv").config();
 const users = [];
 const secretKey = process.env.JWT_SECRET;
 const port = process.env.PORT;
 
-app.use(express.static(__dirname + "/static"));
+app.use(
+  "/static",
+  express.static(path.resolve(__dirname, "frontend", "static"))
+);
 app.use(bodyParser.json());
 app.use(router);
 

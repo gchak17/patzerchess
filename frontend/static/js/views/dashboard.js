@@ -60,6 +60,7 @@ export default class extends view {
       //console.log(historyResponse);
 
       const historyDiv = document.getElementById("history");
+      historyDiv.innerHTML = "";
       const historyResponseJSON = await historyResponse.json();
       historyResponseJSON.forEach(({ rating, against, date }) => {
         if (rating > 0) {

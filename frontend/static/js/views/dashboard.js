@@ -57,10 +57,11 @@ export default class extends view {
         },
       });
 
+      console.log(historyResponse);
+
       const historyDiv = document.getElementById("history");
       const historyResponseJSON = await historyResponse.json();
       historyResponseJSON.forEach(({ rating, against, date }) => {
-        console.log(rating, against, date);
         if (rating > 0) {
           let li = document.createElement("li");
           let liText = document.createTextNode(

@@ -40,6 +40,7 @@ export default class extends view {
       const messageElement = document.createElement("div");
       messageElement.innerText = message;
       messageContainer.append(messageElement);
+      messageContainer.scrollTop = messageContainer.scrollHeight;
     };
 
     messageForm.addEventListener("submit", (e) => {
@@ -66,16 +67,37 @@ export default class extends view {
         state.myColor = "white";
       } else {
         state.myColor = "black";
-
         board.classList.add("black");
       }
+      state.isGameOn = true;
     });
 
     socket.on("gameMove", (message) => {
-      oponentTakeTurn(message);
+      oponentMakeMove(message);
+    });
+
+    socket.on("gameOver", (message) => {
+      showModal(message);
     });
 
     socket.on("disconnectionMessage", (message) => {
+      showModal(message);
+    });
+
+    let board = document.querySelector("#game-container");
+
+    let state = {
+      colorTurn: "white",
+      oldTurns: [],
+      coordinatesFrom: [],
+      coordinatesTo: [],
+      cellFrom: "",
+      cellTo: "",
+      isGameOn: false,
+      myColor: "",
+    };
+
+    const showModal = (message) => {
       const modal = document.getElementById("modal");
       const modalMessage = document.getElementById("modal-message");
       const modalAccept = document.getElementById("modal-accept");
@@ -88,19 +110,6 @@ export default class extends view {
         modal.style.display = "none";
         navigateTo("/dashboard");
       });
-    });
-
-    let board = document.querySelector("#game-container");
-
-    let state = {
-      colorTurn: "white",
-      oldTurns: [],
-      coordinatesFrom: [],
-      coordinatesTo: [],
-      cellFrom: "",
-      cellTo: "",
-      isGameOn: true,
-      myColor: "white",
     };
 
     const createBoard = () => {
@@ -173,11 +182,8 @@ export default class extends view {
     createBoard();
 
     board.addEventListener("click", (e) => {
-      console.log(state);
-
       if (
-        ((e.target.classList.contains("piece") &&
-          e.target.dataset.color === state.myColor) ||
+        (e.target.classList.contains("piece") ||
           e.target.classList.contains("cell")) &&
         state.isGameOn &&
         state.myColor === state.colorTurn
@@ -215,18 +221,18 @@ export default class extends view {
           state.cellTo.firstChild.dataset.color !== state.colorTurn) ||
           !state.cellTo.firstChild)
       ) {
-        if (viableMove()) {
-          takeTurn(state.cellFrom, state.cellTo);
+        if (possiblePieceMove()) {
+          makeMove(state.cellFrom, state.cellTo);
           if (isKingInCheck()) {
-            revertTurn();
+            revertMove();
           } else {
-            endTurn();
+            commitMove();
           }
         }
       }
     };
 
-    const takeTurn = (from, to) => {
+    const makeMove = (from, to) => {
       let turn = {};
       if (to.firstChild) {
         turn.removedPiece = to.removeChild(to.firstChild);
@@ -241,7 +247,7 @@ export default class extends view {
       state.oldTurns.push(turn);
     };
 
-    const oponentTakeTurn = (message) => {
+    const oponentMakeMove = (message) => {
       let from = document.getElementById(
         `${message.lastMoveFrom[0]},${message.lastMoveFrom[1]}`
       );
@@ -263,9 +269,13 @@ export default class extends view {
 
       state.oldTurns.push(turn);
       state.colorTurn = state.colorTurn === "white" ? "black" : "white";
+      state.cellFrom = "";
+      state.cellTo = "";
+      state.coordinatesFrom = [];
+      state.coordinatesTo = [];
     };
 
-    const revertTurn = () => {
+    const revertMove = () => {
       if (state.oldTurns.length === 0) {
         return state.oldTurns;
       }
@@ -280,7 +290,7 @@ export default class extends view {
       turn.from.appendChild(turn.piece);
     };
 
-    const endTurn = () => {
+    const commitMove = () => {
       if (state.cellFrom.classList) {
         state.cellFrom.classList.remove("selected");
       }
@@ -303,12 +313,15 @@ export default class extends view {
       let lastMoveTo = state.coordinatesTo;
 
       socket.emit("gameMove", { lastMoveFrom, lastMoveTo });
-
+      if (!state.isGameOn) {
+        socket.emit("gameOver", "You lost by checkmate");
+        showModal("You won by checkmate");
+      }
       state.coordinatesFrom = [];
       state.coordinatesTo = [];
     };
 
-    const viableMove = () => {
+    const possiblePieceMove = () => {
       let piece = state.cellFrom.firstChild.dataset.piece;
 
       if (
@@ -354,77 +367,76 @@ export default class extends view {
       ) {
         return true;
       }
+      return false;
     };
 
     const possiblePawnMoves = (from) => {
-      let options = [];
-
-      let from_x = +from.id.split(",")[0];
-      let from_y = +from.id.split(",")[1];
+      let possibleMoves = [];
+      let fromX = +from.id.split(",")[0];
+      let fromY = +from.id.split(",")[1];
 
       if (from.firstChild.dataset.color === "white") {
-        let piece = document.getElementById(`${from_x + 1},${from_y + 1}`);
+        let piece = document.getElementById(`${fromX + 1},${fromY + 1}`);
         if (
           piece &&
           piece.firstChild &&
           piece.firstChild.dataset.color === "black"
         ) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
         }
 
-        piece = document.getElementById(`${from_x - 1},${from_y + 1}`);
+        piece = document.getElementById(`${fromX - 1},${fromY + 1}`);
         if (
           piece &&
           piece.firstChild &&
           piece.firstChild.dataset.color === "black"
         ) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
         }
 
-        piece = document.getElementById(`${from_x},${from_y + 2}`);
-        if (piece && !piece.firstChild && from_y === 1) {
-          options.push(piece.id);
+        piece = document.getElementById(`${fromX},${fromY + 2}`);
+        if (piece && !piece.firstChild && fromY === 1) {
+          possibleMoves.push(piece.id);
         }
 
-        piece = document.getElementById(`${from_x},${from_y + 1}`);
+        piece = document.getElementById(`${fromX},${fromY + 1}`);
         if (piece && !piece.firstChild) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
         }
       } else if (from.firstChild.dataset.color === "black") {
-        let piece = document.getElementById(`${from_x + 1},${from_y - 1}`);
+        let piece = document.getElementById(`${fromX + 1},${fromY - 1}`);
         if (
           piece &&
           piece.firstChild &&
           piece.firstChild.dataset.color === "white"
         ) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
         }
 
-        piece = document.getElementById(`${from_x - 1},${from_y - 1}`);
+        piece = document.getElementById(`${fromX - 1},${fromY - 1}`);
         if (
           piece &&
           piece.firstChild &&
           piece.firstChild.dataset.color === "white"
         ) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
         }
 
-        piece = document.getElementById(`${from_x},${from_y - 2}`);
-        if (piece && !piece.firstChild && from_y === 6) {
-          options.push(piece.id);
+        piece = document.getElementById(`${fromX},${fromY - 2}`);
+        if (piece && !piece.firstChild && fromY === 6) {
+          possibleMoves.push(piece.id);
         }
 
-        piece = document.getElementById(`${from_x},${from_y - 1}`);
+        piece = document.getElementById(`${fromX},${fromY - 1}`);
         if (piece && !piece.firstChild) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
         }
       }
-      return options;
+      return possibleMoves;
     };
 
     const possibleKnightMoves = (from) => {
-      let options = [];
-
+      let possibleMoves = [];
       let x = +from.id.split(",")[0];
       let y = +from.id.split(",")[1];
       let twos = [2, -2];
@@ -442,7 +454,7 @@ export default class extends view {
               (piece.firstChild &&
                 piece.firstChild.dataset.color !== state.colorTurn))
           ) {
-            options.push(piece.id);
+            possibleMoves.push(piece.id);
           }
         }
       }
@@ -458,22 +470,22 @@ export default class extends view {
             (!piece.firstChild ||
               piece.firstChild.dataset.color !== state.colorTurn)
           ) {
-            options.push(piece.id);
+            possibleMoves.push(piece.id);
           }
         }
       }
-      return options;
+      return possibleMoves;
     };
 
     const possibleRookMoves = (from) => {
-      let options = [];
-      let from_x = +from.id.split(",")[0];
-      let from_y = +from.id.split(",")[1];
+      let possibleMoves = [];
+      let fromX = +from.id.split(",")[0];
+      let fromY = +from.id.split(",")[1];
 
-      for (let x = from_x + 1; x < 8; x++) {
-        let piece = document.getElementById(`${x},${from_y}`);
+      for (let x = fromX + 1; x < 8; x++) {
+        let piece = document.getElementById(`${x},${fromY}`);
         if (!piece.firstChild) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
         } else if (
           from.firstChild.dataset.color === piece.firstChild.dataset.color
         ) {
@@ -481,15 +493,15 @@ export default class extends view {
         } else if (
           from.firstChild.dataset.color !== piece.firstChild.dataset.color
         ) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
           break;
         }
       }
 
-      for (let x = from_x - 1; x >= 0; x--) {
-        let piece = document.getElementById(`${x},${from_y}`);
+      for (let x = fromX - 1; x >= 0; x--) {
+        let piece = document.getElementById(`${x},${fromY}`);
         if (!piece.firstChild) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
         } else if (
           from.firstChild.dataset.color === piece.firstChild.dataset.color
         ) {
@@ -497,15 +509,15 @@ export default class extends view {
         } else if (
           from.firstChild.dataset.color !== piece.firstChild.dataset.color
         ) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
           break;
         }
       }
 
-      for (let y = from_y + 1; y < 8; y++) {
-        let piece = document.getElementById(`${from_x},${y}`);
+      for (let y = fromY + 1; y < 8; y++) {
+        let piece = document.getElementById(`${fromX},${y}`);
         if (!piece.firstChild) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
         } else if (
           from.firstChild.dataset.color === piece.firstChild.dataset.color
         ) {
@@ -513,15 +525,15 @@ export default class extends view {
         } else if (
           from.firstChild.dataset.color !== piece.firstChild.dataset.color
         ) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
           break;
         }
       }
 
-      for (let y = from_y - 1; y >= 0; y--) {
-        let piece = document.getElementById(`${from_x},${y}`);
+      for (let y = fromY - 1; y >= 0; y--) {
+        let piece = document.getElementById(`${fromX},${y}`);
         if (!piece.firstChild) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
         } else if (
           from.firstChild.dataset.color === piece.firstChild.dataset.color
         ) {
@@ -529,126 +541,123 @@ export default class extends view {
         } else if (
           from.firstChild.dataset.color !== piece.firstChild.dataset.color
         ) {
-          options.push(piece.id);
+          possibleMoves.push(piece.id);
           break;
         }
       }
-      return options;
+      return possibleMoves;
     };
 
     const possibleBishopMoves = (from) => {
-      let options = [];
-      let from_x = +from.id.split(",")[0];
-      let from_y = +from.id.split(",")[1];
+      let possibleMoves = [];
+      let fromX = +from.id.split(",")[0];
+      let fromY = +from.id.split(",")[1];
+      let upY = fromY + 1;
+      let downY = fromY - 1;
 
-      let y_up = from_y + 1;
-      let y_down = from_y - 1;
-      for (let x = from_x + 1; x < 8; x++) {
-        if (y_up < 8) {
-          let piece = document.getElementById(`${x},${y_up}`);
+      for (let x = fromX + 1; x < 8; x++) {
+        if (upY < 8) {
+          let piece = document.getElementById(`${x},${upY}`);
 
           if (!piece.firstChild) {
-            options.push(piece.id);
+            possibleMoves.push(piece.id);
           } else if (
             from.firstChild.dataset.color === piece.firstChild.dataset.color
           ) {
-            y_up = 9;
+            upY = 9;
           } else if (
             from.firstChild.dataset.color !== piece.firstChild.dataset.color
           ) {
-            options.push(piece.id);
-            y_up = 9;
+            possibleMoves.push(piece.id);
+            upY = 9;
           }
-          y_up++;
+          upY++;
         }
 
-        if (y_down >= 0) {
-          let piece = document.getElementById(`${x},${y_down}`);
+        if (downY >= 0) {
+          let piece = document.getElementById(`${x},${downY}`);
 
           if (!piece.firstChild) {
-            options.push(piece.id);
+            possibleMoves.push(piece.id);
           } else if (
             from.firstChild.dataset.color === piece.firstChild.dataset.color
           ) {
-            y_down = -1;
+            downY = -1;
           } else if (
             from.firstChild.dataset.color !== piece.firstChild.dataset.color
           ) {
-            options.push(piece.id);
-            y_down = -1;
+            possibleMoves.push(piece.id);
+            downY = -1;
           }
-          y_down--;
-        }
-      }
-
-      y_up = from_y + 1;
-      y_down = from_y - 1;
-
-      for (let x = from_x - 1; x >= 0; x--) {
-        if (y_up < 8) {
-          let piece = document.getElementById(`${x},${y_up}`);
-
-          if (!piece.firstChild) {
-            options.push(piece.id);
-          } else if (
-            from.firstChild.dataset.color === piece.firstChild.dataset.color
-          ) {
-            y_up = 9;
-          } else if (
-            from.firstChild.dataset.color !== piece.firstChild.dataset.color
-          ) {
-            options.push(piece.id);
-            y_up = 9;
-          }
-          y_up++;
-        }
-
-        if (y_down >= 0) {
-          let piece = document.getElementById(`${x},${y_down}`);
-          if (!piece.firstChild) {
-            options.push(piece.id);
-          } else if (
-            from.firstChild.dataset.color === piece.firstChild.dataset.color
-          ) {
-            y_down = -1;
-          } else if (
-            from.firstChild.dataset.color !== piece.firstChild.dataset.color
-          ) {
-            options.push(piece.id);
-            y_down = -1;
-          }
-          y_down--;
+          downY--;
         }
       }
-      return options;
+
+      upY = fromY + 1;
+      downY = fromY - 1;
+
+      for (let x = fromX - 1; x >= 0; x--) {
+        if (upY < 8) {
+          let piece = document.getElementById(`${x},${upY}`);
+
+          if (!piece.firstChild) {
+            possibleMoves.push(piece.id);
+          } else if (
+            from.firstChild.dataset.color === piece.firstChild.dataset.color
+          ) {
+            upY = 9;
+          } else if (
+            from.firstChild.dataset.color !== piece.firstChild.dataset.color
+          ) {
+            possibleMoves.push(piece.id);
+            upY = 9;
+          }
+          upY++;
+        }
+
+        if (downY >= 0) {
+          let piece = document.getElementById(`${x},${downY}`);
+          if (!piece.firstChild) {
+            possibleMoves.push(piece.id);
+          } else if (
+            from.firstChild.dataset.color === piece.firstChild.dataset.color
+          ) {
+            downY = -1;
+          } else if (
+            from.firstChild.dataset.color !== piece.firstChild.dataset.color
+          ) {
+            possibleMoves.push(piece.id);
+            downY = -1;
+          }
+          downY--;
+        }
+      }
+      return possibleMoves;
     };
 
     const possibleQueenMoves = (from) => {
-      let options = [];
+      let possibleMoves = [];
 
-      let diagonals = possibleBishopMoves(from);
-      let straights = possibleRookMoves(from);
-
-      for (let path of diagonals) {
-        options.push(path);
+      for (let path of possibleBishopMoves(from)) {
+        possibleMoves.push(path);
       }
 
-      for (let path of straights) {
-        options.push(path);
+      for (let path of possibleRookMoves(from)) {
+        possibleMoves.push(path);
       }
 
-      return options;
+      return possibleMoves;
     };
 
     const possibleKingMoves = (from) => {
-      let options = [];
-      let from_x = +from.id.split(",")[0];
-      let from_y = +from.id.split(",")[1];
-
+      let possibleMoves = [];
+      let fromX = +from.id.split(",")[0];
+      let fromY = +from.id.split(",")[1];
       let moves = [-1, 0, 1];
+
       for (let i of moves) {
         for (let j of moves) {
-          let piece = document.getElementById(`${from_x + i},${from_y + j}`);
+          let piece = document.getElementById(`${fromX + i},${fromY + j}`);
           if (
             piece &&
             (!piece.firstChild ||
@@ -656,70 +665,59 @@ export default class extends view {
                 from.firstChild.dataset.color !==
                   piece.firstChild.dataset.color))
           ) {
-            options.push(piece.id);
+            possibleMoves.push(piece.id);
           }
         }
       }
-      return options;
+      return possibleMoves;
     };
 
     const isKingInCheck = () => {
       let king = document.querySelector(
         `[data-piece="king"][data-color=${state.colorTurn}]`
       ).parentElement;
-      let king_coords = king.id.split(",");
-
-      let opponent_color = state.colorTurn === "white" ? "black" : "white";
-      let opponent_pieces = document
-        .getElementById("game-container")
-        .querySelectorAll(`img[data-color=${opponent_color}]`);
-
+      let kingCoordinates = king.id.split(",");
       let check = false;
 
-      opponent_pieces.forEach((piece) => {
-        let type = piece.dataset.piece;
-        piece = piece.parentElement;
-        if (
-          type === "pawn" &&
-          possiblePawnMoves(piece).indexOf(king_coords.toString()) > -1
-        ) {
-          check = true;
-        } else if (
-          type === "knight" &&
-          possibleKnightMoves(piece).indexOf(king_coords.toString()) > -1
-        ) {
-          check = true;
-        } else if (
-          type === "rook" &&
-          possibleRookMoves(piece).indexOf(king_coords.toString()) > -1
-        ) {
-          check = true;
-        } else if (
-          type === "bishop" &&
-          possibleBishopMoves(piece).indexOf(king_coords.toString()) > -1
-        ) {
-          check = true;
-        } else if (
-          type === "queen" &&
-          possibleQueenMoves(piece).indexOf(king_coords.toString()) > -1
-        ) {
-          check = true;
-        } else if (
-          type === "king" &&
-          possibleKingMoves(piece).indexOf(king_coords.toString()) > -1
-        ) {
-          check = true;
-        }
-      });
+      document
+        .getElementById("game-container")
+        .querySelectorAll(
+          `img[data-color=${state.colorTurn === "white" ? "black" : "white"}]`
+        )
+        .forEach((piece) => {
+          let type = piece.dataset.piece;
+          piece = piece.parentElement;
+
+          if (
+            (type === "pawn" &&
+              possiblePawnMoves(piece).indexOf(kingCoordinates.toString()) >
+                -1) ||
+            (type === "knight" &&
+              possibleKnightMoves(piece).indexOf(kingCoordinates.toString()) >
+                -1) ||
+            (type === "rook" &&
+              possibleRookMoves(piece).indexOf(kingCoordinates.toString()) >
+                -1) ||
+            (type === "bishop" &&
+              possibleBishopMoves(piece).indexOf(kingCoordinates.toString()) >
+                -1) ||
+            (type === "queen" &&
+              possibleQueenMoves(piece).indexOf(kingCoordinates.toString()) >
+                -1) ||
+            (type === "king" &&
+              possibleKingMoves(piece).indexOf(kingCoordinates.toString()) > -1)
+          ) {
+            check = true;
+          }
+        });
 
       return check;
     };
 
     const isKingInCheckMate = () => {
-      let pieces = document
+      for (let piece of document
         .getElementById("game-container")
-        .querySelectorAll(`img[data-color=${state.colorTurn}]`);
-      for (let piece of pieces) {
+        .querySelectorAll(`img[data-color=${state.colorTurn}]`)) {
         let paths = [];
         let type = piece.dataset.piece;
         piece = piece.parentElement;
@@ -739,14 +737,13 @@ export default class extends view {
         }
 
         for (let path of paths) {
-          let to_path = document.getElementById(`${path}`);
-          takeTurn(piece, to_path);
+          makeMove(piece, document.getElementById(`${path}`));
 
           if (!isKingInCheck()) {
-            revertTurn();
+            revertMove();
             return false;
           } else {
-            revertTurn();
+            revertMove();
           }
         }
       }

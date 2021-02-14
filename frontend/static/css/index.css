@@ -1,6 +1,21 @@
 @import "game.css";
 @import "dashboard.css";
 
+@font-face {
+  font-family: "Helvetica";
+  src: url("../fonts/Helvetica-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Roboto";
+  src: url("../fonts/Roboto-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Raleway";
+  src: url("../fonts/Raleway-Regular.ttf");
+}
+
 html {
   box-sizing: border-box;
 }
@@ -32,4 +47,59 @@ body,
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+form {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2vw;
+  background-color: rgba(232, 180, 139);
+}
+
+form input[type="text"],
+form input[type="password"] {
+  border-radius: 10px;
+  border: 1px solid #e5e5e5;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+form label {
+  font-size: 20px;
+  line-height: 25px;
+  font-weight: bold;
+  font-family: Raleway;
+}
+
+form input[type="submit"] {
+  background: #757c66;
+  border-radius: 10px;
+  border: 1px solid #757c66;
+  font-family: Helvetica;
+  font-style: normal;
+  font-weight: bold;
+  margin-top: 10px;
+  font-size: 16px;
+  line-height: 20px;
+  color: #ffffff;
+  padding: 5px 10px;
+}
+
+#login-register-page {
+  background: #d3dce6;
+}
+
+@media only screen and (max-width: 768px) {
+  #login-register-page {
+    flex-direction: column;
+  }
+
+  form {
+    padding: 4vw;
+  }
+
+  form input {
+    margin-top: 20px !important;
+  }
 }

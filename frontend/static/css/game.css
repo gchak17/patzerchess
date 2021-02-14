@@ -4,27 +4,60 @@
   height: 100%;
   padding: 2%;
   background-color: bisque;
-  outline: 1px solid black;
+  align-items: center;
 }
 
 #chat-container {
-  outline: 1px solid green;
   flex: 3;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 2.5%;
+  height: 40vw;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
 }
 
 #messages-container {
   flex: 8;
-  outline: 1px solid blue;
-  overflow-y: scroll;
+  overflow-y: auto;
+  border-radius: 12px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  padding: 10px;
+  box-sizing: border-box;
+  height: 30vw;
+}
+
+#messages-container div {
+  font-family: Helvetica;
+  font-style: normal;
+  font-weight: lighter;
+  font-size: 14px;
+  line-height: 18px;
+  margin-top: 5px;
 }
 
 #send-container {
-  flex: 2;
-  outline: 1px solid pink;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  height: 10vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+#send-button {
+  background: #757c66;
+  border-radius: 10px;
+  border: 1px solid #757c66;
+  font-family: Helvetica;
+  font-style: normal;
+  font-weight: bold;
+  margin-top: 10px;
+  font-size: 16px;
+  line-height: 20px;
+  color: #ffffff;
+  padding: 7px 10px;
 }
 
 #modal {
@@ -38,6 +71,7 @@
   overflow: auto;
   justify-content: center;
   align-items: center;
+  background-color: rgba(136, 136, 136, 0.6);
 }
 
 #modal-content {
@@ -64,7 +98,6 @@
 }
 
 #game-container {
-  outline: 1px solid red;
   flex: 7;
   display: grid;
   grid-template-columns: repeat(8, 5vw);
@@ -84,6 +117,7 @@
   justify-content: center;
   align-items: center;
   padding: 15.5%;
+  border: 1px solid rgba(0, 0, 0, 0.5);
 }
 
 #game-container.black .cell {
@@ -97,9 +131,62 @@
   max-width: 75%;
 }
 
+#game-container .cell.selected .piece {
+  width: 85%;
+  height: 85%;
+  max-height: 85%;
+  max-width: 85%;
+  background-color: rgba(230, 175, 101, 0.5);
+}
+
+@media only screen and (max-width: 1440px) {
+  #game-container {
+    grid-template-columns: repeat(8, 7vw);
+    grid-template-rows: repeat(8, 7vw);
+  }
+
+  #chat-container {
+    height: 56vw;
+  }
+
+  #send-container {
+    height: 14vw;
+  }
+
+  #messages-container {
+    height: 42vw;
+  }
+}
+
 @media only screen and (max-width: 1024px) {
   #game-container {
-    grid-template-columns: repeat(8, 8vw);
-    grid-template-rows: repeat(8, 8vw);
+    grid-template-columns: repeat(8, 9vw);
+    grid-template-rows: repeat(8, 9vw);
+  }
+
+  #game-container .cell .piece {
+    width: 85%;
+    height: 85%;
+    max-height: 85%;
+    max-width: 85%;
+  }
+
+  #game-container .cell.selected .piece {
+    width: 90%;
+    height: 90%;
+    max-height: 90%;
+    max-width: 90%;
+  }
+
+  #chat-container {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  #game-container {
+    grid-template-columns: repeat(8, 12vw);
+    grid-template-rows: repeat(8, 12vw);
+    padding: 0;
   }
 }

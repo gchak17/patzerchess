@@ -21,6 +21,12 @@ export default class extends view {
                 <input type="password" autocomplete="off" id="register-password" placeholder="Password" required minlength="6"/> 
                 <input type="submit" value="Register"/> 
               </form> 
+            </div>
+            <div id="modal">
+                <div id="modal-content">
+                <p id="modal-message"></p>
+                <button id="modal-accept">OK</button>
+                </div>
             </div>`;
   }
 
@@ -46,7 +52,18 @@ export default class extends view {
       });
 
       if (!response.ok) {
-        console.log("Bad response");
+        const modal = document.getElementById("modal");
+        const modalMessage = document.getElementById("modal-message");
+        const modalAccept = document.getElementById("modal-accept");
+
+        const { message } = await response.json();
+
+        modalMessage.innerHTML = message;
+        modal.style.display = "flex";
+
+        modalAccept.addEventListener("click", () => {
+          modal.style.display = "none";
+        });
       } else {
         const { message } = await response.json();
         localStorage.setItem("token", message);

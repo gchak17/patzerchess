@@ -71,6 +71,16 @@ router.post("/api/game", (req, res) => {
   res.status(200).json({ message: roomId });
 });
 
+router.get("/api/history", (req, res) => {
+  let dummyData = [
+    { rating: -5, against: "user1", date: "today" },
+    { rating: 10, against: "user123", date: "yesterday" },
+    { rating: -8, against: "useri", date: "yesterday" },
+  ];
+
+  res.status(200).json(dummyData);
+});
+
 router.get("/*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "frontend", "index.html"));
 });

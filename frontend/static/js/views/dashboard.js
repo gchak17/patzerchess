@@ -9,11 +9,20 @@ export default class extends view {
 
   async render() {
     return `<div id="dashboard-page">
+              <div class="section">
                 <h2 id="username"></h2>
                 <h2 id="rating"></h2>
-                <h2 id="history"></h2>
-                <button id="play">play</button>
                 <button id="logout">logout</button>
+              </div>
+              <div class="section">
+                <h2>History</h2>
+                <ul id="history"></ul>
+              </div>
+              <div class="section">
+                <h2>Play</h2>
+                <button id="play">against friend</button>
+                <button id="play-computer" disabled>against computer</button>
+              </div>
             </div>`;
   }
 
@@ -37,9 +46,39 @@ export default class extends view {
         const { username, rating } = await response.json();
         const usernameTitle = document.getElementById("username");
         const ratingTitle = document.getElementById("rating");
-        usernameTitle.innerHTML = username;
+        usernameTitle.innerHTML = `username: ${username}`;
         ratingTitle.innerHTML = `rating: ${rating}`;
       }
+
+      const historyResponse = await fetch("/api/history", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const historyDiv = document.getElementById("history");
+      const historyResponseJSON = await historyResponse.json();
+      historyResponseJSON.forEach(({ rating, against, date }) => {
+        console.log(rating, against, date);
+        if (rating > 0) {
+          let li = document.createElement("li");
+          let liText = document.createTextNode(
+            `Gained ${rating} points against ${against} ${date}`
+          );
+          li.appendChild(liText);
+
+          historyDiv.appendChild(li);
+        } else {
+          let li = document.createElement("li");
+          let liText = document.createTextNode(
+            `Lost ${rating * -1} points against ${against} ${date}`
+          );
+          li.appendChild(liText);
+
+          historyDiv.appendChild(li);
+        }
+      });
     };
 
     fetchDashboard();

@@ -102,13 +102,15 @@ export default class extends view {
       const modalMessage = document.getElementById("modal-message");
       const modalAccept = document.getElementById("modal-accept");
 
-      socket.close();
-      modalMessage.innerHTML = message;
-      modal.style.display = "flex";
+      if (modal.style.display !== "flex") {
+        modalMessage.innerHTML = message;
+        modal.style.display = "flex";
+      }
 
       modalAccept.addEventListener("click", () => {
         modal.style.display = "none";
         navigateTo("/dashboard");
+        socket.close();
       });
     };
 

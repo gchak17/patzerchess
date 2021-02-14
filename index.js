@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 app.use(router);
 
 server.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}`);
+  console.log(`Started server on ${port} port`);
 });
 
 const getRoomUsers = (room) => {
@@ -77,8 +77,9 @@ io.on("connection", (socket) => {
         socket.emit("turnMessage", false);
         break;
       default:
-        console.log(users);
-        console.log("Reject another user from entering game");
+        //console.log(users);
+        //console.log("Reject another user from entering game");
+        socket.emit("reject", true);
     }
   });
 
@@ -95,7 +96,7 @@ io.on("connection", (socket) => {
         "disconnectionMessage",
         `${user.username} has left the game, you won!`
       );
-      console.log(`${user.username} has left the game`);
+      // console.log(`${user.username} has left the game`);
     }
   });
 

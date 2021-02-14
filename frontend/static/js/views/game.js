@@ -62,6 +62,11 @@ export default class extends view {
       appendMessage(message);
     });
 
+    socket.on("reject", (message) => {
+      navigateTo("/dashboard");
+      socket.close();
+    });
+
     socket.on("turnMessage", (message) => {
       if (message) {
         state.myColor = "white";

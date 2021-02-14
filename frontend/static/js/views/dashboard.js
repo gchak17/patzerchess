@@ -57,7 +57,7 @@ export default class extends view {
         },
       });
 
-      console.log(historyResponse);
+      //console.log(historyResponse);
 
       const historyDiv = document.getElementById("history");
       const historyResponseJSON = await historyResponse.json();

@@ -7,16 +7,13 @@
   outline: 1px solid black;
 }
 
-#game-container {
-  outline: 1px solid red;
-  flex: 7;
-}
-
 #chat-container {
   outline: 1px solid green;
   flex: 3;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  padding: 2.5%;
 }
 
 #messages-container {
@@ -64,4 +61,45 @@
   border: 0;
   border-radius: 5px;
   padding: 6px;
+}
+
+#game-container {
+  outline: 1px solid red;
+  flex: 7;
+  display: grid;
+  grid-template-columns: repeat(8, 5vw);
+  grid-template-rows: repeat(8, 5vw);
+  padding: 2.5%;
+  box-sizing: border-box;
+  justify-content: center;
+  align-content: center;
+}
+
+#game-container.black {
+  transform: scaleY(-1);
+}
+
+#game-container .cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15.5%;
+}
+
+#game-container.black .cell {
+  transform: scaleY(-1);
+}
+
+#game-container .cell .piece {
+  width: 75%;
+  height: 75%;
+  max-height: 75%;
+  max-width: 75%;
+}
+
+@media only screen and (max-width: 1024px) {
+  #game-container {
+    grid-template-columns: repeat(8, 8vw);
+    grid-template-rows: repeat(8, 8vw);
+  }
 }

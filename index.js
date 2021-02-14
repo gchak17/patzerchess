@@ -110,7 +110,7 @@ io.on("connection", (socket) => {
   socket.on("gameOver", (data) => {
     const user = getCurrentUser(socket.id);
     if (user) {
-      socket.to(user.room).emit("gameMove", data);
+      socket.to(user.room).emit("gameOver", data);
     }
   });
 });

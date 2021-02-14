@@ -106,4 +106,11 @@ io.on("connection", (socket) => {
       socket.to(user.room).emit("gameMove", data);
     }
   });
+
+  socket.on("gameOver", (data) => {
+    const user = getCurrentUser(socket.id);
+    if (user) {
+      socket.to(user.room).emit("gameMove", data);
+    }
+  });
 });
